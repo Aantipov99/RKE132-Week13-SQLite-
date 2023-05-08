@@ -59,3 +59,56 @@ static void InsertCustomer(SQLiteConnection myConnection)
     lName = Console.ReadLine();
     Console.WriteLine("Enter Date of Birth (mm-dd-yyyy):");
     dob = Console.ReadLine();
+
+    command = myConnection.CreateCommand();
+    command.CommandText = $"INSERT INTO customer (firstName, lastName, dateOfBirth " +
+    $"VALUES ('{fName}', '{lName}', '{dob})'";
+
+    int rowInserted = command.ExecuteNonQuery();
+    Console.WriteLine($"Row inserted: {rowInserted}");
+
+    ReadData(myConnection);
+
+}
+
+static void RemoveCustomer(SQLiteConnection myConnection)
+{
+    SQLiteCommand command;
+
+    string idToDelete;
+    Console.WriteLine("Inter an id to delete a customer:");
+    idToDelete = Console.ReadLine();
+
+    command = myConnection.CreateCommand();
+    command.CommandText = $"DELETE FROM customer WHERE rowid = {idToDelete}";
+    int rowRemoved = command.ExecuteNonQuery();
+    Console.WriteLine($"{rowRemoved} was removed from the table customer");
+
+    ReadData(myConnection);
+}
+
+static void FindCustomer(SQLiteConnection myConnection)
+{
+    SQLiteDataReader reader;
+    SQLiteCommand command;
+    string searchName;
+    Console.WriteLine("Enter a first name to display customer data:");
+    searchName = Console.ReadLine();
+    command = myConnection.CreateCommand();
+    command.CommandText = $"SELECT customer.rowid, customer.firstName, customer.lastName, status.statustype " +
+    $"FROM customerStatus " +
+    $"JOIN customer ON customer.rowid = customerStatus.customerId " +
+    $"JOIN status ON status.rowid = customerStatus.statustype " +
+    $"WHERE firstname LIKE '{searchName}'";
+
+    reader = command.ExecuteReader();
+    while (reader.Read())
+    {
+        string readerRowid = reader["rowid"].ToString();
+        string readerStringName = reader.GetString(1);
+        string readerStringLastName = reader.GetString(2);
+        string readerStringStatus = reader.GetString(3);
+        Console.WriteLine($"Search result: ID: {readerRowid}. {readerStringName} {readerStringLastName}. Status: {readerStringStatus}");
+    }
+    myConnection.Close();
+}
